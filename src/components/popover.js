@@ -42,26 +42,23 @@ const tpl = /*html*/`
     [[= it.html || (it.$ && it.$.slot && it.$.slot.default) || '' ]]
   </div>
 </div>
+`;
 
-<script>
-(() => {
-  // Dentro del shadow
-  const root  = (typeof document !== 'undefined' && document) || this;
-  const host  = root.host || root; // <x-popover>
+// Toda la lógica aquí (NO en el template)
+function setup(root, host) {
   const panel = root.querySelector('.panel');
   const pid   = panel?.id;
-  const bd    = root.getElementById('bd-'+pid);
+  const bd    = pid ? root.getElementById('bd-'+pid) : null;
   const trig  = root.querySelector('.trigger');
   const close = root.querySelector('.close');
 
   // Trigger interno
   if (trig && panel) {
     trig.addEventListener('click', () => {
-      if (panel.matches(':popover-open')) panel.hidePopover?.(); else panel.showPopover?.();
+      panel.matches(':popover-open') ? panel.hidePopover?.() : panel.showPopover?.();
     });
     panel.addEventListener('toggle', () => {
-      const open = panel.matches(':popover-open');
-      trig.setAttribute('aria-expanded', open ? 'true':'false');
+      trig.setAttribute('aria-expanded', panel.matches(':popover-open') ? 'true':'false');
     });
   }
 
@@ -84,8 +81,7 @@ const tpl = /*html*/`
       trg.setAttribute('aria-haspopup', 'dialog');
       trg.setAttribute('aria-expanded', panel.matches(':popover-open') ? 'true':'false');
       panel.addEventListener('toggle', () => {
-        const open = panel.matches(':popover-open');
-        trg.setAttribute('aria-expanded', open ? 'true':'false');
+        trg.setAttribute('aria-expanded', panel.matches(':popover-open') ? 'true':'false');
       });
     }
   }
@@ -94,8 +90,7 @@ const tpl = /*html*/`
   if (bd && panel) {
     bd.addEventListener('click', () => { panel.hidePopover?.(); bd.removeAttribute('open'); });
     panel.addEventListener('toggle', () => {
-      const open = panel.matches(':popover-open');
-      if (open) bd.setAttribute('open',''); else bd.removeAttribute('open');
+      panel.matches(':popover-open') ? bd.setAttribute('open','') : bd.removeAttribute('open');
     });
   }
 
@@ -109,17 +104,14 @@ const tpl = /*html*/`
 
   // Posicionamiento simple
   const pos = host.getAttribute('pos') || host.getAttribute('position');
-  if (pos) {
-    const s = panel.style;
-    s.position='fixed'; const pad=16;
+  if (pos && panel) {
+    const s = panel.style; s.position='fixed'; const pad=16;
     if (pos==='top'){ s.top=pad+'px'; s.left='50%'; s.transform='translateX(-50%)'; }
     else if (pos==='bottom'){ s.bottom=pad+'px'; s.left='50%'; s.transform='translateX(-50%)'; }
     else if (pos==='left'){ s.left=pad+'px'; s.top='50%'; s.transform='translateY(-50%)'; }
     else if (pos==='right'){ s.right=pad+'px'; s.top='50%'; s.transform='translateY(-50%)'; }
     else { s.top='50%'; s.left='50%'; s.transform='translate(-50%,-50%)'; }
   }
-})();
-</script>
-`;
+}
 
-registerComponent('x-popover', tpl, { shadow:true });
+registerComponent('x-popover', tpl, { shadow:true, setup });
