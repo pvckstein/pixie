@@ -7,17 +7,15 @@ const tpl = /*html*/`
 
   details {
     position: relative;
-    border: 1px solid #000;
+    border: 1px solid grey;
     border-radius: .5rem;
     padding: 1rem 1rem; /* espacio lateral y arriba */
-    background: #fff;
     transition: border-color .2s ease-in-out, box-shadow .2s ease-in-out;
   }
 
   details:focus-within {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(0,0,0,.08);
-  }
+    }
 
   summary {
     position: relative;
@@ -38,7 +36,6 @@ const tpl = /*html*/`
     inline-size: 1rem;
     text-align: center;
     transition: transform .2s ease;
-    font-weight: 700;
   }
 
   /* Wrapper del contenido (lo animaremos con max-height) */
