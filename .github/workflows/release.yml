@@ -3,26 +3,42 @@ name: build & release
 on:
   push:
     tags:
-      - 'v*.*.*'
-  workflow_dispatch:
+      - 'v*.*.*'        # corre solo cuando subes un tag (v0.1.0, v0.1.1, ...)
+  workflow_dispatch:     # permite ejecutarlo manualmente desde Actions
 
 permissions:
-  contents: write
+  contents: write        # necesario para crear/actualizar la Release
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - run: npm install --no-fund --no-audit
-      - run: npm run build
+      # Si no tienes package-lock.json, usa install (no ci)
+      - name: Install deps
+        run: npm install --no-fund --no-audit
 
+      - name: Build
+        run: npm run build
+
+      # Sube dist/** a la Release solo si es un tag
       - name: Upload dist to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           files: dist/**
+
+      # Publica en npm cuando es un tag
+      - name: Publish to npm
+        if: startsWith(github.ref, 'refs/tags/')
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
