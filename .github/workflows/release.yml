@@ -3,30 +3,25 @@ name: build & release
 on:
   push:
     tags:
-      - 'v*.*.*'        # solo corre cuando subes un tag (p.ej. v0.1.0)
-  workflow_dispatch:     # permite ejecutarlo manualmente desde Actions
+      - 'v*.*.*'
+  workflow_dispatch:
 
 permissions:
-  contents: write        # necesario para crear la Release
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
 
-      # Usa 'npm install' (no 'npm ci') para no depender de package-lock.json
       - run: npm install
-
-      # compila: requiere que tu package.json tenga "build": "tsup src/index.ts ..."
       - run: npm run build
 
-      # Crea/actualiza la Release del tag y sube dist/**
       - name: Upload dist to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
