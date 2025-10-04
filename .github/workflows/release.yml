@@ -2,17 +2,15 @@ name: build & release
 
 on:
   push:
-    tags:
-      - 'v*.*.*'        # corre solo cuando subes un tag (v0.1.0, v0.1.1, ...)
-  workflow_dispatch:     # permite ejecutarlo manualmente desde Actions
+    tags: ['v*.*.*']
+  workflow_dispatch:
 
 permissions:
-  contents: write        # necesario para crear/actualizar la Release
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,22 +19,28 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          registry-url: https://registry.npmjs.org
+          always-auth: true   # <- crea ~/.npmrc usando el token
 
-      # Si no tienes package-lock.json, usa install (no ci)
       - name: Install deps
         run: npm install --no-fund --no-audit
 
       - name: Build
         run: npm run build
 
-      # Sube dist/** a la Release solo si es un tag
+      # (opcional) Verifica que estás autenticada en npm antes de publicar
+      - name: npm whoami (debug)
+        if: startsWith(github.ref, 'refs/tags/')
+        run: npm whoami --registry=https://registry.npmjs.org
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: Upload dist to GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           files: dist/**
 
-      # Publica en npm cuando es un tag
       - name: Publish to npm
         if: startsWith(github.ref, 'refs/tags/')
         run: npm publish --access public
